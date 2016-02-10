@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-source load.sh
+source ~/.bash-my-aws/load.sh
+
+OUTPUT="id key ip extip type state name"
 
 my_query='
   Reservations[].Instances[][
@@ -15,7 +17,4 @@ my_query='
  '
 instances ${inputs} --query ${my_query}
 
-MYENV=${Alpha:$1}
-#| grep -i Alpha | sort -k 7,9
-#printf "%s\n" "${filecontent[@]}"
-#while read id key ip extip state name; do echo "alias ${name// /}='slogin ubuntu@$ip -i $key.pem'"; done < <( ./list.sh | grep -i $MYENV  ) >> myalias
+# while read id key ip extip type state name; do echo "alias ${name// /}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-aws ) | sort > ~/aliases.gen
