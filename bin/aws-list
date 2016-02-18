@@ -2,8 +2,6 @@
 
 source ~/.bash-my-aws/load.sh
 
-OUTPUT="id key ip extip type state name"
-
 my_query='
   Reservations[].Instances[][
       InstanceId,
@@ -17,4 +15,4 @@ my_query='
  '
 instances ${inputs} --query ${my_query}
 
-# while read id key ip extip type state name; do echo "alias ${name// /}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-aws ) | sort > ~/aliases.gen
+#while read id key ip extip type state name; do name=${name/ - /-}; name=${name/ /-}; echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-aws ) | sort > ~/aliases.gen
