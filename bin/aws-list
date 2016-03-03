@@ -15,4 +15,7 @@ my_query='
  '
 instances ${inputs} --query ${my_query}
 
+# generate aliases file
 #while read id key ip extip type state name; do name=${name/ - /-}; name=${name/ /-}; echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-aws ) | sort > ~/aliases.gen
+
+# list-aws | grep Alpha | grep -E 'order|shift|track' | awk '{print $3}' | while read i; do echo "slogin -o 'StrictHostKeyChecking=no' -i ~/.ssh/nekloteam.pem ubuntu@$i 'sudo /etc/init.d/wildfly restart'"; done | xargs -P0 -I{} bash -c "{}"
