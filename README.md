@@ -12,7 +12,7 @@ echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-
 
 ```ShellSession
 $ list-aws | grep Alpha | grep -E 'order|shift|track' | awk '{print $3}' | while read i; do \
-echo "slogin -o 'StrictHostKeyChecking=no' -i ~/.ssh/nekloteam.pem ubuntu@$i 'sudo /etc/init.d/wildfly restart'"; \
+echo "slogin -o 'StrictHostKeyChecking=no' -i ~/.ssh/ ubuntu@$i 'sudo /etc/init.d/wildfly restart'"; \
 done | xargs -P0 -I{} bash -c "{}"
 ```
 
