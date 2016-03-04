@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#===============================================================================
+#
+#          FILE: rcmd
+# 
+#         USAGE: [ENV=environment] ./rcmd <instance> <output> <cmd>
+# 
+#   DESCRIPTION: 
+# 
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Aleksandr Kukhar (kyxap), kyxap@kyxap.pro
+#  ORGANIZATION: Operations
+#       CREATED: 03/04/2016 14:40
+#      REVISION:  ---
+#===============================================================================
+set -o nounset                              # Treat unset variables as an error
+
+# sample:
+# ENV=EJB ./rcmd wf1 test ps auxww
+
+ENV="${ENV:-Alpha}" || shift
+instance="${1:?}"; shift
+output="${1:?}"; shift
+cmd="${@:?}"
+ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
+
+if res=$(list-aws | grep "$ENV" | grep -E "$instance")
+then
+	echo "$res" | awk '{print $2" "$3}' | while read key ip
+	do
+		echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
+	done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
+fi
+
+

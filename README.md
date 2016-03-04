@@ -6,7 +6,12 @@ Forked https://github.com/realestate-com-au/bash-my-aws
 ## Aliases file generation
 
 ```ShellSession
-$ while read id key ip extip type state name; do name=${name/ - /-}; name=${name/ /-}; echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list-aws ) | sort > ~/aliases.gen
+$ while read id key ip extip type state name
+	do
+		name=${name/ - /-}
+		name=${name/ /-}
+		echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"
+	done < <( list-aws ) | sort > ~/aliases.gen
 ```
 
 ## Remote command execution in parallel on specified hosts
