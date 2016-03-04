@@ -29,10 +29,10 @@ ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
 
 if res=$(list-aws | grep "$ENV" | grep -E "$instance")
 then
-	echo "$res" | awk '{print $2" "$3}' | while read key ip
-	do
-		echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
-	done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
+  echo "$res" | awk '{print $2" "$3}' | while read key ip
+do
+  echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
+done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
 fi
 
 
