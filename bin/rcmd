@@ -27,7 +27,7 @@ output="${1:?}"; shift
 cmd="${@:?}"
 ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
 
-if res=$(list-aws | grep "$ENV" | grep -E "$instance")
+if res=$(list-aws | grep -v "[[:blank:]]None[[:blank:]]" | grep "$ENV" | grep -E "$instance")
 then
   echo "$res" | awk '{print $2" "$3}' | while read key ip
 do
