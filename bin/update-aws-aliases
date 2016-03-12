@@ -1,0 +1,40 @@
+#!/usr/bin/env bash 
+#===============================================================================
+#
+#          FILE: update-aws-aliases.sh
+# 
+#         USAGE: ./update-aws-aliases.sh 
+# 
+#   DESCRIPTION: 
+# 
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Aleksandr Kukhar (kyxap), kyxap@kyxap.pro
+#  ORGANIZATION: Operations
+#       CREATED: 03/12/2016 01:42
+#      REVISION:  ---
+#===============================================================================
+set -e
+set -o nounset                              # Treat unset variables as an error
+
+ALIASES=~/aliases.gen
+TIMESTAMP=$(date +"%F_%H-%M-%S" -u)
+
+# make backup
+[[ -f $ALIASES ]] && mv "$ALIASES" "${ALIASES}.${TIMESTAMP}"
+
+# forming aliases file
+while read id ssh_key privip pubip type state name;
+do
+  name=${name// - /-}
+  name=${name// /-}
+  echo "alias ${name}='slogin ubuntu@${privip} -i ~/.ssh/${ssh_key}.pem'"
+done < <( list-aws | grep -vE "[[:blank:]]terminated[[:blank:]]" ) | sort > "$ALIASES"
+
+echo "Aliases updated: "$(wc -l $ALIASES)
+
+# reload bash
+exec bash -l
+
