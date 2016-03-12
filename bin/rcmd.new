@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+#===============================================================================
+#
+#          FILE: rcmd
+# 
+#         USAGE: [ENV=environment] rcmd <instance> <output> <cmd>
+# 
+#   DESCRIPTION: 
+# 
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Aleksandr Kukhar (kyxap), kyxap@kyxap.pro
+#  ORGANIZATION: Operations
+#       CREATED: 03/04/2016 14:40
+#      REVISION:  ---
+#===============================================================================
+set -e
+set -o nounset                              # Treat unset variables as an error
+
+# sample:
+# ENV=EJB ./rcmd wf1 test ps auxww
+
+ENV="${ENV:-Alpha}" || shift
+OUT="${OUT:-/tmp/rcmd.output}" || shift
+instance="${1:?}"; shift
+cmd="${@:?}"
+
+ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
+ssh_user="ubuntu"
+max_ssh_connections=10
+
+#if res=$(list-aws | grep -v "[[:blank:]]None[[:blank:]]" | grep "$ENV" | grep -E "$instance")
+#then
+#  echo "$res" | awk '{print $2" "$3}' | while read key ip
+#do
+#  echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
+#done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
+#fi
+
+list_instances()
+{
+  local _res=
+  if _res=$(list-aws | grep -w "[[:blank:]]${ENV}" | grep -E "${instance}")
+  then
+    echo "$_res"
+  else
+    exit 1
+  fi
+}
+
+# Just pass key=value to filter function
+#   filter "pubip=None type=m3.medium state=stopped"
+# etc.
+# Only full filter matches will be displayed.
+
+filter()
+{
+  # split input args by spaces
+  local _params=( ${@// / } )
+
+  declare -A arr
+  # split param by =
+  for param in "${_params[@]}"
+  do
+    _param=( ${param//=/ } )
+    # add arr[key]=value
+    arr["${_param[0]}"]=${_param[1]}
+  done
+
+  declare -A match
+
+  while read id ssh_key privip pubip type state name
+  do
+    # start with zero counters
+    match[$id]=0
+    var=0
+
+    # loop over filter parameters 
+    for k in "${!arr[@]}"
+    do
+      # parameters count in filters array
+      count=${#arr[@]}
+      
+      var="${match[$id]}"
+      
+      # if substituted var value matches with filter's parameter value, then increment counter
+      [[ ${!k} == ${arr[$k]} ]] && var=$(( $var + 1 ))
+      
+      # set new value in assoc array
+      match[$id]=$var
+
+      # compare total matches counter with sum of all elements in filter array
+      [[ ${match[$id]} -eq $count ]] && echo "$id $ssh_key $privip $pubip $type $state $name"
+    done
+  done
+}
+
+prepare_cmd()
+{
+  while read id ssh_key privip pubip type state name
+  do
+    echo "slogin $ssh_args -i ~/.ssh/${ssh_key}.pem ${ssh_user}@${privip} '$cmd'"
+  done
+}
+
+run_cmd()
+{
+  while read CMD
+  do
+    echo "$CMD"
+  done | xargs -P${max_ssh_connections:-10} -I{} bash -c "{}" 2>&1 | tee "$OUT"
+}
+
+usage()
+{
+  echo "Usage:"
+  echo "[ENV=<Beta|Alpha|...>] [OUT=/tmp/command_output.log] rcmd <srvname1[|srvname2|...]> <COMMAND>"
+  exit 1
+}
+
+# run command
+list_instances | filter "state=running" | prepare_cmd | run_cmd
+
+#echo "i-2ce1b4c5  core        172.16.16.75   None            c3.large   stopped  Prod Databases - cass-release1" | filter "type=m3.medium state=terminated"
+#echo "i-2ce1b4c5  core        172.16.16.75   None            c3.large   stopped  Prod Databases - cass-release1" | filter "type=m3.medium state=stopped"
+
+#echo "a  fasten-tmp  172.17.17.205  None            t2.small   stopped  Beta Gate - customer-gtw1
+#b  fasten-tmp  172.17.17.205  NNone            m3.medium   stopped  Beta Gate - customer-gtw1
+#c  fasten-tmp  172.17.17.205  None            t2.small   running  Beta Gate - customer-gtw1
+#d  fasten-tmp  172.17.17.205  None            m3.medium   stopped  Beta Gate - customer-gtw1
+#e  fasten-tmp  172.17.17.205  None            m3.medium   running  Beta Gate - customer-gtw1
+#f  fasten-tmp  172.17.17.205  None            m3.medium   stopped  Beta Gate - customer-gtw1" | filter "pubip=NNone type=m3.medium state=stopped"
+
+#i-b5f0b55c  core        172.16.16.6    52.20.165.201   t2.medium  running  Prod Gate - driver-gtw1
+#" | filter "type=m3.medium state=stopped"
+
+#echo "file.pem 127.0.0.1" | filter "type=terminated"
+#filter "type=terminated state="
+
