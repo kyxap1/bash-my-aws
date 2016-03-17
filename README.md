@@ -3,7 +3,7 @@ Runs pure bash onliners on remote hosts in parallel with pipe/redirections suppo
 
 #### List format sample
 ```ShellSession
-kyxap@wbench:~$ aws-list
+kyxap@wb:~$ aws-list
 i-102efea9  core  172.16.16.182  52.3.244.141    m4.large  running  Prod Core - shift-srv1
 i-ea554113  devs  172.17.17.214  None            t2.small  stopped  Beta Core - shift-srv1
 i-2af1ced3  core  172.16.16.177  52.91.123.140   m4.large  running  Prod Core - order-srv2
@@ -17,10 +17,10 @@ i-934c766a  team  172.17.17.15   54.152.91.22    m4.large  running  Alpha Core -
 ```
 #### Run pure bash script
 ```ShellSession
-kyxap@wbench:~$ rcmd 'order|shift' /tmp/out.log 'dir=/tmp; [[ -d $dir ]] && { echo "$(hostname);$dir exist";}'
+kyxap@wb:~$ rcmd 'order|shift' /tmp/out.log 'dir=/tmp; [[ -d $dir ]] && { echo "$(hostname);$dir exist";}'
 order-srv1;/tmp exist
 shift-srv2;/tmp exist
 shift-srv1;/tmp exist
 order-srv2;/tmp exist
-kyxap@wbench:~$ 
+kyxap@wb:~$ 
 ```
