@@ -32,7 +32,7 @@ then
   echo "$res" | awk '{print $2" "$3}' | while read key ip
 do
   echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
-done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
+done | xargs -0 -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
 fi
 
 

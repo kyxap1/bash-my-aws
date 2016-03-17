@@ -31,14 +31,6 @@ ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
 ssh_user="ubuntu"
 max_ssh_connections=10
 
-#if res=$(list-aws | grep -v "[[:blank:]]None[[:blank:]]" | grep "$ENV" | grep -E "$instance")
-#then
-#  echo "$res" | awk '{print $2" "$3}' | while read key ip
-#do
-#  echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
-#done | xargs -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
-#fi
-
 list_instances()
 {
   local _res=
@@ -110,7 +102,7 @@ run_cmd()
   while read CMD
   do
     echo "$CMD"
-  done | xargs -P${max_ssh_connections:-10} -I{} bash -c "{}" 2>&1 | tee "$OUT"
+  done | xargs -0 -P${max_ssh_connections:-10} -I{} bash -c "{}" 2>&1 | tee "$OUT"
 }
 
 usage()
