@@ -17,7 +17,7 @@ i-934c766a  team  172.17.17.15   54.152.91.22    m4.large  running  Alpha Core -
 ```
 #### Run pure bash script
 ```ShellSession
-kyxap@wbench:~$ rcmd 'order|shift' /tmp/request.log 'dir=/tmp; [[ -d $dir ]] && { echo "$(hostname);$dir exist";}'
+kyxap@wbench:~$ rcmd 'order|shift' /tmp/out.log 'dir=/tmp; [[ -d $dir ]] && { echo "$(hostname);$dir exist";}'
 order-srv1;/tmp exist
 shift-srv2;/tmp exist
 shift-srv1;/tmp exist
