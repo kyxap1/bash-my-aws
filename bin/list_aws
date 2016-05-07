@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+source ~/.bash-my-aws/load.sh
+
+ENV=${1:-Alpha}
+AWS_DEFAULT_PROFILE=${AWS_DEFAULT_PROFILE:-prod}
+AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+
+export AWS_DEFAULT_PROFILE
+export AWS_DEFAULT_REGION
+
+my_query='
+  Reservations[].Instances[][
+      InstanceId,
+      KeyName,
+      PrivateIpAddress,
+      PublicIpAddress,
+      InstanceType,
+      State.Name,
+      [Tags[?Key==`Name`].Value][0][0]
+  ]
+ '
+instances ${inputs} --query ${my_query} 
+
+# generate aliases file
+#while read id key ip extip type state name; do name=${name/ - /-}; name=${name/ /-}; echo "alias ${name/ /-}='slogin ubuntu@$ip -i ~/.ssh/$key.pem'"; done < <( list_aws | grep -vE "[[:blank:]]None[[:blank:]]" ) | sort > ~/aliases.gen
+
+# restart wf
+# list_aws | grep Alpha | grep -E 'order|shift|track' | awk '{print $3}' | while read i; do echo "slogin -o 'StrictHostKeyChecking=no' -i ~/.ssh/nekloteam.pem ubuntu@$i 'sudo /etc/init.d/wildfly stop'"; done | xargs -P0 -I{} bash -c "{}"
+
+# generate web console list
+# list_aws | grep Prod | grep -E "order|polygon" | while read a b c d e f g h j k; do echo "$k http://$c:9990/console/App.html#deployments"; done | column -t | sort 
+# order-srv1    http://172.16.16.227:9990/console/App.html#deployments
+# order-srv2    http://172.16.16.177:9990/console/App.html#deployments
+# polygon-srv1  http://172.16.16.239:9990/console/App.html#deployments
+# polygon-srv2  http://172.16.16.192:9990/console/App.html#deployments
+
+# generate x-www-browser
+# list_aws | grep Prod | grep -E 'Gate|Core' | grep -E '\-(gtw|srv)' | while read a b c d e f g h j k; do echo "http://$c:9990/console/App.html#deployments #$k"; done | column -t | sort -k2 | awk '{print $1}' | xargs echo x-www-browser
+
+# generate ebasher/jmx-query compatible list
+# list_aws | grep Prod | grep -v -E "Servi|stopped" | awk '{print $3" "$10}' | sed 's/-.*//g' | sort -k2
+
