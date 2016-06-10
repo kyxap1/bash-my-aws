@@ -17,22 +17,27 @@
 #      REVISION:  ---
 #===============================================================================
 set -o nounset                              # Treat unset variables as an error
-
+#set -x
 # sample:
-# ENV=EJB ./rcmd wf1 test ps auxww
+# ENV=EJB ./rcmd wf1 'ps auxww | grep blabla'
 
 ENV="${ENV:-Alpha}" || shift
 instance="${1:?}"; shift
-output="${1:?}"; shift
+output="/tmp/output.log"
 cmd="${@:?}"
 ssh_args="-o 'StrictHostKeyChecking=no' -o 'ConnectTimeout=3'"
 
-if res=$(list-aws | grep -v "[[:blank:]]None[[:blank:]]" | grep "$ENV" | grep -E "$instance")
+if res=$(list_aws | grep -v "[[:blank:]]None[[:blank:]]" | grep "$ENV" | grep -E "$instance")
 then
   echo "$res" | awk '{print $2" "$3}' | while read key ip
-do
-  echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
-done | xargs -0 -P0 -I{} bash -c "{}" 2>&1 | tee "$output"
+  do
+    echo "slogin $ssh_args -i ~/.ssh/${key}.pem ubuntu@${ip} '$cmd'"
+  done | xargs -d'\n' -I{} -n1 -P20 bash -c '{}' 2>&1 | tee "$output"
 fi
 
+# install wildfly module
+# ENV=Prod rcmd '(shift|tariff|heatmap)\-srv' 'wget -q http://172.16.16.104/jboss.tar.gz -O - | ( cd /opt/wildfly/modules; sudo tar xzf - --strip-components=2 jboss/modules/{com,org} ); sudo chown -R wildfly: /opt/wildfly/modules'
 
+# install wildfly remote module
+# ENV=Alpha rcmd '\-(srv|gtw|app)' /tmp/output.log 'hostname;wget -q http://workbench.fasten.com/~kyxap/setup-wildfly-logstash.sh -O - | sudo bash -s uninstall'
+# ENV=Alpha rcmd '\-(srv|gtw|app)' /tmp/output.log 'hostname; sudo /etc/init.d/wildfly stop; sudo mv /opt/wildfly-8.2.0.Final /opt/wildfly-8.2.0.Final.old'

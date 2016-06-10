@@ -1,0 +1,52 @@
+#!/usr/bin/env bash 
+#===============================================================================
+#
+#          FILE: update-ansible-hosts
+# 
+#         USAGE: ./update-ansible-hosts
+# 
+#   DESCRIPTION: 
+# 
+#       OPTIONS: ---
+#  REQUIREMENTS: ---
+#          BUGS: ---
+#         NOTES: ---
+#        AUTHOR: Aleksandr Kukhar (kyxap), kyxap@kyxap.pro
+#       COMPANY: Fasten.com
+#  ORGANIZATION: Operations
+#       CREATED: 06/10/2016 17:31
+#      REVISION:  ---
+#===============================================================================
+
+set -e
+set -o nounset                              # Treat unset variables as an error
+
+#####
+
+die() { echo "[ERROR] $@ [Function: ${FUNCNAME[@]}, String:${BASH_LINENO[1]}]" >&2; exit 1; }
+display() { echo "[INFO] $@"; }
+warn() { local msg="[WARN] $@"; return 1; }
+
+#####
+
+TIMESTAMP=$(date +"%F_%H-%M-%S" -u)
+ANSIBLE_CFG="${HOME}/.ansible.cfg"
+
+[[ -f $ANSIBLE_CFG ]] || die "No such file: $ANSIBLE_CFG"
+
+if ! ANSIBLE_INV=$(grep -Po '^\s?inventory\s+=\s?\K.+$' $ANSIBLE_CFG | envsubst)
+then
+  die "No inventory defined in: $ANSIBLE_CFG"
+fi
+
+[[ -f $ANSIBLE_INV ]] && mv "$ANSIBLE_INV" "${ANSIBLE_INV}.${TIMESTAMP}"
+
+# forming aliases file
+while read id ssh_key privip pubip type state name;
+do
+  name=${name// - /-}
+  name=${name// /-}
+  echo "${name} ansible_host=${privip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/${ssh_key}.pem"
+done < <( list_aws | grep -vE "[[:blank:]](terminated|None)[[:blank:]]" ) > "$ANSIBLE_INV"
+
+echo "Aliases updated: "$(wc -l $ANSIBLE_INV) >&2 

@@ -19,7 +19,7 @@
 set -e
 set -o nounset                              # Treat unset variables as an error
 
-ALIASES=~/aliases.gen
+ALIASES=/home/kyxap/bash-it/aliases/hosts.aliases.bash
 TIMESTAMP=$(date +"%F_%H-%M-%S" -u)
 
 # make backup
@@ -31,10 +31,10 @@ do
   name=${name// - /-}
   name=${name// /-}
   echo "alias ${name}='slogin ubuntu@${privip} -i ~/.ssh/${ssh_key}.pem'"
-done < <( list-aws | grep -vE "[[:blank:]]terminated[[:blank:]]" ) | sort > "$ALIASES"
+done < <( list_aws | grep -vE "[[:blank:]]terminated[[:blank:]]" ) | sort > "$ALIASES"
 
 echo "Aliases updated: "$(wc -l $ALIASES)
 
 # reload bash
-exec bash -l
+#exec bash -l
 
